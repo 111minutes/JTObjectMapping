@@ -57,7 +57,10 @@
                     }
                     [self setValue:[NSArray arrayWithArray:array] forKey:mapsToValue];
                 }
-            } else {
+            } else if ([obj isKindOfClass:[NSNull class]]){
+                [self setValue:nil forKey:mapsToValue];
+            }
+            else{
                 NSAssert2(NO, @"[mapsToValue class]: %@, [obj class]: %@ is not handled", NSStringFromClass([mapsToValue class]), NSStringFromClass([obj class])); 
             }
         }
