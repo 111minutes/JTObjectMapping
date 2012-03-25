@@ -11,6 +11,9 @@
 #import "JTDateMappings.h"
 #import <objc/runtime.h>
 
+static NSDateFormatter *formatter = nil;
+
+
 @implementation NSObject (JTObjectMapping)
 
 - (void)setValueFromDictionary:(NSDictionary *)dict mapping:(NSDictionary *)mapping {
@@ -38,13 +41,18 @@
                 [targetObject setValueFromDictionary:obj mapping:mappings.mapping];
                 [self setValue:targetObject forKey:mappings.key];
                 [targetObject release];
-            } else if ([mapsToValue conformsToProtocol:@protocol(JTDateMappings)] && [(NSObject *)obj isKindOfClass:[NSString class]]) {
+            } else if ([mapsToValue conformsToProtocol:@protocol(JTDateMappings)] && [(NSObject *)obj isKindOfClass:[NSString class]])
+            {
                 id <JTDateMappings> mappings = (id <JTDateMappings>)mapsToValue;
-                NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-                [formatter setDateFormat:mappings.dateFormatString];
-                NSDate *date = [formatter dateFromString:obj];
-                [formatter release];
-                [self setValue:date forKey:mappings.key];
+                @synchronized(self)
+                {
+                    if(!formatter)
+                        formatter = [NSDateFormatter new];
+                    [formatter setDateFormat:mappings.dateFormatString];
+                    NSDate *date = [formatter dateFromString:obj];
+                    [self setValue:date forKey:mappings.key];
+                }
+                
             } else if ([(NSObject *)obj isKindOfClass:[NSArray class]]) {
                 if ([mapsToValue conformsToProtocol:@protocol(JTMappings)]) {
                     id <JTMappings> mappings = (id <JTMappings>)mapsToValue;
